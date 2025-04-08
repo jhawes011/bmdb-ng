@@ -26,7 +26,7 @@ export class UserLoginComponent implements OnInit, OnDestroy {
   ngOnInit(): void {}
 
   ngOnDestroy(): void {
-    this.subscription.unsubscribe();
+    this.subscription?.unsubscribe();
   }
   login() {
     this.subscription = this.userService.login(this.userLogin).subscribe({
