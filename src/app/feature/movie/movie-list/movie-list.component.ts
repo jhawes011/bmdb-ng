@@ -18,16 +18,33 @@ export class MovieListComponent implements OnInit, OnDestroy {
   welcomeMsg!: string;
   loggedInUser!: User;
   isAdmin: boolean = false;
+
   constructor(private movieSvc: MovieService, private sysSvc: SystemService) {}
+
   ngOnInit(): void {
     this.loggedInUser = this.sysSvc.loggedInUser;
     this.isAdmin = this.loggedInUser.admin;
-    this.welcomeMsg = `Hello, ${this.sysSvc.loggedInUser.firstName}!`;
+    this.welcomeMsg = `Hello, ${this.loggedInUser.firstName}!`;
     this.subscription = this.movieSvc.list().subscribe((resp) => {
       this.movies = resp;
     });
   }
   ngOnDestroy(): void {
     this.subscription.unsubscribe();
+  }
+
+  delete(id: number) {
+    this.subscription = this.movieSvc.delete(id).subscribe({
+      next: () => {
+        // refresh the movie list
+        this.subscription = this.movieSvc.list().subscribe((resp) => {
+          this.movies = resp;
+        });
+      },
+      error: (err) => {
+        console.log('Error deleting movie for id: ' + id);
+        alert('Error deleting movie for id: ' + id);
+      },
+    });
   }
 }

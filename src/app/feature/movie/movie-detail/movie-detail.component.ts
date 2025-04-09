@@ -1,8 +1,10 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { Movie } from '../../../model/movie';
 import { Subscription } from 'rxjs';
+import { Movie } from '../../../model/movie';
 import { Router, ActivatedRoute } from '@angular/router';
 import { MovieService } from '../../../service/movie.service';
+import { SystemService } from '../../../service/system.service';
+import { User } from '../../../model/user';
 
 @Component({
   selector: 'app-movie-detail',
@@ -15,24 +17,29 @@ export class MovieDetailComponent implements OnInit, OnDestroy {
   movieId!: number;
   movie!: Movie;
   subscription!: Subscription;
+  loggedInUser!: User;
+  isAdmin: boolean = false;
 
   constructor(
     private movieSvc: MovieService,
     private router: Router,
-    private actRoute: ActivatedRoute
+    private actRoute: ActivatedRoute,
+    private sysSvc: SystemService
   ) {}
 
   ngOnInit(): void {
-    // get movieId from the URL
-    this.actRoute.params.subscribe((params) => {
-      this.movieId = params['id'];
-      // get movie from the service
+    this.loggedInUser = this.sysSvc.loggedInUser;
+    this.isAdmin = this.loggedInUser.admin;
+    // get the movieId from the URL
+    this.actRoute.params.subscribe((parms) => {
+      this.movieId = parms['id'];
+      // get the movie for the id
       this.subscription = this.movieSvc.getById(this.movieId).subscribe({
         next: (resp) => {
           this.movie = resp;
         },
         error: (err) => {
-          console.error('Error retrieving movie: ', err);
+          console.log('Error retrieving movie: ', err);
         },
       });
     });
@@ -40,6 +47,7 @@ export class MovieDetailComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.subscription.unsubscribe();
   }
+
   delete() {
     this.movieSvc.delete(this.movieId).subscribe({
       next: (resp) => {
